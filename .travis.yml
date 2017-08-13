@@ -1,0 +1,34 @@
+language: android
+
+android:
+  components:
+    - tools
+    - build-tools-26.0.1
+    - platform-tools
+    - tools
+
+env:
+  global:
+    - ANDROID_HOME=/usr/local/android-sdk
+    - PATH=${ANDROID_HOME}/emulator:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/platform-tools:${PATH}
+
+install: 
+  # https://stackoverflow.com/questions/42731625/travis-ci-failed-because-cannot-accept-license-constrain-layout/42736695#42736695
+  - sdkmanager --list
+  - echo yes | sdkmanager "tools"
+  - echo yes | sdkmanager "platforms;android-25"
+  - echo yes | sdkmanager "extras;android;m2repository"
+  - echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2" 
+  - echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout-solver;1.0.2"
+  - echo yes | sdkmanager "system-images;android-25;google_apis;armeabi-v7a"
+  - echo no | avdmanager create avd --name test -k "system-images;android-25;google_apis;armeabi-v7a" --abi "armeabi-v7a" --tag "google_apis"
+  - emulator -avd test -engine classic -no-window -camera-back none -camera-front none -verbose -qemu -m 512 &
+  - adb wait-for-device get-serialno
+  - sdkmanager --list
+
+before_script:
+  - android-wait-for-emulator
+  - adb shell settings put global window_animation_scale 0 &
+  - adb shell settings put global transition_animation_scale 0 &
+  - adb shell settings put global animator_duration_scale 0 &
+  - adb shell input keyevent 82 &
